@@ -5,20 +5,22 @@ import { WebSocketServer } from "ws";
 import { drawCircle } from "./drawCircle.js";
 import { logCommand } from "./logCommand.js";
 import { drawHorizontalLine, drawVerticalLine } from "./drawLines.js";
+import { moveMouse } from "./moveMouse.js";
 
 const HTTP_PORT = 8000;
+const WEB_SOCKET_PORT = 9000;
 
 console.log(`Start static http server on the ${HTTP_PORT} port!`);
 httpServer.listen(HTTP_PORT);
 
-const wsServer = new WebSocketServer({ port: 9000 });
+const wsServer = new WebSocketServer({ port: WEB_SOCKET_PORT });
 
 wsServer.on("connection", onConnect);
 
 function onConnect(wsClient) {
   wsClient.send("Upgraded to WebSocket");
+  console.log(`Upgrade to WebSocket on ${WEB_SOCKET_PORT}`);
   wsClient.on("message", function (message) {
-    console.log(message.toString());
     let command = message.toString();
     let mouse = robot.getMousePos();
     let xCord = mouse.x;
@@ -30,16 +32,8 @@ function onConnect(wsClient) {
       command.indexOf("_right") !== -1 ||
       command.indexOf("_up") !== -1
     ) {
-      if (command.indexOf("mouse_left") !== -1) {
-        xCord = mouse.x - distanse;
-      } else if (command.indexOf("mouse_right") !== -1) {
-        xCord = mouse.x + distanse;
-      } else if (command.indexOf("mouse_up") !== -1) {
-        yCord = mouse.y - distanse;
-      } else if (command.indexOf("mouse_down") !== -1) {
-        yCord = mouse.y + distanse;
-      }
-      robot.moveMouse(xCord, yCord);
+      moveMouse(command, distanse, mouse, xCord, yCord);
+      logCommand(command);
       wsClient.send(command);
     }
     if (
@@ -64,6 +58,15 @@ function onConnect(wsClient) {
       drawCircle(distanse, xCord, yCord);
       logCommand(command);
       wsClient.send(command);
+    } else if (command.indexOf("prnt_scrn") !== -1) {
+    } else if (command.indexOf("mouse_position") !== -1) {
+      wsClient.send(`mouse_position ${mouse.x},${mouse.y}`);
+      logCommand(command);
     }
+
   });
+  wsClient.on('close', function() {
+      console.log("Websocket closed");
+  
+});
 }
