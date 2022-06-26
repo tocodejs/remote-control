@@ -20,19 +20,45 @@ function onConnect(wsClient) {
     var mouse = robot.getMousePos();
     let xCord = mouse.x;
     let yCord = mouse.y;
-    let distanse = command.split(" ")[1];
-
-    if (command.indexOf("mouse_left") !== -1) {
-      xCord = mouse.x - distanse;
-    } else if (command.indexOf("mouse_right") !== -1) {
-      xCord = mouse.x + +distanse;
-    } else if (command.indexOf("mouse_up") !== -1) {
-      yCord = mouse.y - distanse;
-    } else if (command.indexOf("mouse_down") !== -1) {
-      yCord = mouse.y + +distanse;
+    let distanse = +command.split(" ")[1];
+    if (
+      command.indexOf("_left") !== -1 ||
+      command.indexOf("_down") !== -1 ||
+      command.indexOf("_right") !== -1 ||
+      command.indexOf("_up") !== -1
+    ) {
+      if (command.indexOf("mouse_left") !== -1) {
+        xCord = mouse.x - distanse;
+      } else if (command.indexOf("mouse_right") !== -1) {
+        xCord = mouse.x + distanse;
+      } else if (command.indexOf("mouse_up") !== -1) {
+        yCord = mouse.y - distanse;
+      } else if (command.indexOf("mouse_down") !== -1) {
+        yCord = mouse.y + distanse;
+      }
+      robot.moveMouse(xCord, yCord);
+      wsClient.send(command);
     }
-    robot.moveMouse(xCord, yCord);
-    wsClient.send(command);
+    if (command.indexOf("draw_square ") !== -1) {
+      drawVerticalLine(xCord, yCord, yCord + distanse, 1);
+      drawHorizontalLine(xCord, yCord, xCord + distanse, 1);
+      drawVerticalLine(xCord, yCord, yCord - distanse, -1);
+      drawHorizontalLine(xCord, yCord, xCord - distanse, -1);
+      wsClient.send(command);
+    }
+    function drawVerticalLine(xPos, yPos, iToLoop, iStepForLoop) {
+      let i = 0;
+      while (yCord !== iToLoop) {
+        yCord += iStepForLoop;
+        robot.moveMouse(xCord, yCord);
+      }
+    }
+    function drawHorizontalLine(xPos, yPos, iToLoop, iStepForLoop) {
+      while (xCord !== iToLoop) {
+        xCord += iStepForLoop;
+        robot.moveMouse(xCord, yCord);
+      }
+    }
   });
 }
 
