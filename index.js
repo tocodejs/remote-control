@@ -2,6 +2,9 @@ import * as jimp from "jimp";
 import { httpServer } from "./src/http_server/index.js";
 import robot from "robotjs";
 import { WebSocketServer } from "ws";
+import { drawCircle } from "./drawCircle.js";
+import { logCommand } from "./logCommand.js";
+import { drawHorizontalLine, drawVerticalLine } from "./drawLines.js";
 
 const HTTP_PORT = 8000;
 
@@ -17,7 +20,7 @@ function onConnect(wsClient) {
   wsClient.on("message", function (message) {
     console.log(message.toString());
     let command = message.toString();
-    var mouse = robot.getMousePos();
+    let mouse = robot.getMousePos();
     let xCord = mouse.x;
     let yCord = mouse.y;
     let distanse = +command.split(" ")[1];
@@ -39,46 +42,28 @@ function onConnect(wsClient) {
       robot.moveMouse(xCord, yCord);
       wsClient.send(command);
     }
-    if (command.indexOf("draw_square ") !== -1) {
-      drawVerticalLine(xCord, yCord, yCord + distanse, 1);
-      drawHorizontalLine(xCord, yCord, xCord + distanse, 1);
-      drawVerticalLine(xCord, yCord, yCord - distanse, -1);
-      drawHorizontalLine(xCord, yCord, xCord - distanse, -1);
-      wsClient.send(command);
-    } else if (command.indexOf("draw_rectangle") !== -1) {
+    if (
+      command.indexOf("draw_square ") !== -1 ||
+      command.indexOf("draw_rectangle") !== -1
+    ) {
       let xDisatnse = +command.split(" ")[1];
-      let yDisatnse = +command.split(" ")[2];
+      let yDisatnse = +command.split(" ")[1];
+
+      if (command.indexOf("draw_rectangle") !== -1) {
+        yDisatnse = +command.split(" ")[2];
+      }
+
       drawVerticalLine(xCord, yCord, yCord + yDisatnse, 1);
-      drawHorizontalLine(xCord, yCord, xCord + xDisatnse, 1);
-      drawVerticalLine(xCord, yCord, yCord - yDisatnse, -1);
-      drawHorizontalLine(xCord, yCord, xCord - xDisatnse, -1);
+      drawHorizontalLine(xCord, yCord + yDisatnse, xCord + xDisatnse, 1);
+      drawVerticalLine(xCord + xDisatnse, yCord + yDisatnse, yCord, -1);
+      drawHorizontalLine(xCord + xDisatnse, yCord, xCord, -1);
+
+      logCommand(command);
       wsClient.send(command);
-    }
-    function drawVerticalLine(xPos, yPos, iToLoop, iStepForLoop) {
-      let i = 0;
-      while (yCord !== iToLoop) {
-        yCord += iStepForLoop;
-        robot.moveMouse(xCord, yCord);
-      }
-    }
-    function drawHorizontalLine(xPos, yPos, iToLoop, iStepForLoop) {
-      while (xCord !== iToLoop) {
-        xCord += iStepForLoop;
-        robot.moveMouse(xCord, yCord);
-      }
+    } else if (command.indexOf("draw_circle") !== -1) {
+      drawCircle(distanse, xCord, yCord);
+      logCommand(command);
+      wsClient.send(command);
     }
   });
 }
-
-robot.setMouseDelay(2);
-
-/*var twoPI = Math.PI * 2.0;
-var screenSize = robot.getScreenSize();
-var height = (screenSize.height / 2) - 10;
-var width = screenSize.width;
- 
-for (let x = 0; x < width; x++)
-{
-   let y = height * Math.sin((twoPI * x) / width) + height;
-   // robot.moveMouse(x, y);
-}*/
