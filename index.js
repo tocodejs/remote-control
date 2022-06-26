@@ -45,6 +45,14 @@ function onConnect(wsClient) {
       drawVerticalLine(xCord, yCord, yCord - distanse, -1);
       drawHorizontalLine(xCord, yCord, xCord - distanse, -1);
       wsClient.send(command);
+    } else if (command.indexOf("draw_rectangle") !== -1) {
+      let xDisatnse = +command.split(" ")[1];
+      let yDisatnse = +command.split(" ")[2];
+      drawVerticalLine(xCord, yCord, yCord + yDisatnse, 1);
+      drawHorizontalLine(xCord, yCord, xCord + xDisatnse, 1);
+      drawVerticalLine(xCord, yCord, yCord - yDisatnse, -1);
+      drawHorizontalLine(xCord, yCord, xCord - xDisatnse, -1);
+      wsClient.send(command);
     }
     function drawVerticalLine(xPos, yPos, iToLoop, iStepForLoop) {
       let i = 0;
