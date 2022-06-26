@@ -15,9 +15,7 @@ httpServer.listen(HTTP_PORT);
 
 const wsServer = new WebSocketServer({ port: WEB_SOCKET_PORT });
 
-wsServer.on("connection", onConnect);
-
-function onConnect(wsClient) {
+const onConnect = (wsClient) => {
   wsClient.send("Upgraded to WebSocket");
   console.log(`Upgrade to WebSocket on ${WEB_SOCKET_PORT}`);
   wsClient.on("message", function (message) {
@@ -63,10 +61,11 @@ function onConnect(wsClient) {
       wsClient.send(`mouse_position ${mouse.x},${mouse.y}`);
       logCommand(command);
     }
-
   });
-  wsClient.on('close', function() {
-      console.log("Websocket closed");
-  
-});
-}
+
+  wsClient.on("close", function () {
+    console.log("Websocket closed");
+  });
+};
+
+wsServer.on("connection", onConnect);
